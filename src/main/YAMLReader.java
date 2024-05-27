@@ -2,11 +2,13 @@ package main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import javax.swing.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class YAMLReader extends FileHandler {
+public class YAMLReader extends DateHandler {
 
     @Override
     public boolean checkType(String filePath) {
@@ -37,8 +39,10 @@ public class YAMLReader extends FileHandler {
                 reactors.put(reactor.reactorClass, reactor);
             }
 
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Ошибка при чтении данных: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
+
 
         return reactors;
     }

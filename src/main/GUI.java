@@ -16,14 +16,12 @@ public class GUI extends JFrame {
     private JButton closeButton = new JButton("Выйти из программы");
 
     public GUI() throws URISyntaxException {
-        // Установка внешнего вида приложения
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
             System.err.println("Не удалось настроить внешний вид системы");
         }
 
-        // Настройка главного фрейма
         setTitle("Лабораторная работа № 3");
         setLayout(new GridBagLayout());
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -31,18 +29,14 @@ public class GUI extends JFrame {
         setPreferredSize(new Dimension(800, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Настройка размеров и цветов кнопок
         configureButton(openButton);
         configureButton(closeButton);
 
-        // Добавление кнопок
         addComponent(openButton, 0);
         addComponent(closeButton, 1);
 
-        // Обработка событий кнопки закрытия
         closeButton.addActionListener(e -> dispose());
 
-        // Обработка событий кнопки выбора файла
         openButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -52,8 +46,8 @@ public class GUI extends JFrame {
                 File selectedFile = fileChooser.getSelectedFile();
                 if (selectedFile != null && selectedFile.exists()) {
                     try {
-                        Client client = new Client();
-                        HashMap<String, Reactor> reactors = client.readCommonClass(selectedFile.getAbsolutePath());
+                        FileReaderChain fileReaderChain = new FileReaderChain();
+                        HashMap<String, Reactor> reactors = fileReaderChain.readCommonClass(selectedFile.getAbsolutePath());
                         if (reactors != null) {
                             DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Reactors");
                             DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -75,7 +69,7 @@ public class GUI extends JFrame {
                             tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
                             JScrollPane scrollPane = new JScrollPane(tree);
 
-                            JFrame treeFrame = new JFrame("Дерево реакторов");
+                            JFrame treeFrame = new JFrame("Реакторы");
                             treeFrame.add(scrollPane);
                             treeFrame.setSize(400, 300);
                             treeFrame.setVisible(true);
@@ -95,7 +89,6 @@ public class GUI extends JFrame {
             }
         });
 
-        // Упаковка и отображение главного фрейма
         pack();
         setVisible(true);
     }

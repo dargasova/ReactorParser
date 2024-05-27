@@ -3,10 +3,11 @@ package main;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import javax.swing.*;
 import java.io.FileReader;
 import java.util.HashMap;
 
-public class JSONReader extends FileHandler {
+public class JSONReader extends DateHandler {
 
     @Override
     public boolean checkType(String filePath) {
@@ -40,7 +41,8 @@ public class JSONReader extends FileHandler {
                 reactors.put(reactorClass, reactor);
             }
 
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Ошибка при чтении данных: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
 
 
