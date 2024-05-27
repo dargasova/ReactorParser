@@ -5,13 +5,17 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GUI extends JFrame {
-    private final GridBagConstraints gbc = new GridBagConstraints();
+    private GridBagConstraints gbc = new GridBagConstraints();
+    private JButton openButton = new JButton("Выбрать файл");
+    private JButton closeButton = new JButton("Выйти из программы");
 
     public GUI() throws URISyntaxException {
         // Установка внешнего вида приложения
@@ -30,9 +34,7 @@ public class GUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Настройка размеров и цветов кнопок
-        JButton openButton = new JButton("Выбрать файл");
         configureButton(openButton);
-        JButton closeButton = new JButton("Выйти из программы");
         configureButton(closeButton);
 
         // Добавление кнопок
@@ -40,58 +42,66 @@ public class GUI extends JFrame {
         addComponent(closeButton, 1);
 
         // Обработка событий кнопки закрытия
-        closeButton.addActionListener(e -> dispose());
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
 
         // Обработка событий кнопки выбора файла
-        openButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
-            int result = fileChooser.showOpenDialog(GUI.this);
+        openButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(GUI.this);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                if (selectedFile != null && selectedFile.exists()) {
-                    try {
-                        Client client = new Client();
-                        HashMap<String, Reactor> reactors = client.readCommonClass(selectedFile.getAbsolutePath());
-                        if (reactors != null) {
-                            DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Reactors");
-                            DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    if (selectedFile != null && selectedFile.exists()) {
+                        try {
+                            Client client = new Client();
+                            HashMap<String, Reactor> reactors = client.readCommonClass(selectedFile.getAbsolutePath());
+                            if (reactors != null) {
+                                DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Reactors");
+                                DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 
-                            for (Map.Entry<String, Reactor> entry : reactors.entrySet()) {
-                                DefaultMutableTreeNode reactorNode = new DefaultMutableTreeNode(entry.getKey());
-                                reactorNode.add(new DefaultMutableTreeNode("Сгорание: " + entry.getValue().burnup));
-                                reactorNode.add(new DefaultMutableTreeNode("Класс: " + entry.getValue().reactorClass));
-                                reactorNode.add(new DefaultMutableTreeNode("Электрическая мощность: " + entry.getValue().electricalCapacity));
-                                reactorNode.add(new DefaultMutableTreeNode("Первая загрузка: " + entry.getValue().firstLoad));
-                                reactorNode.add(new DefaultMutableTreeNode("КПД: " + entry.getValue().kpd));
-                                reactorNode.add(new DefaultMutableTreeNode("Срок службы: " + entry.getValue().lifeTime));
-                                reactorNode.add(new DefaultMutableTreeNode("Тепловая мощность: " + entry.getValue().terminalCapacity));
-                                reactorNode.add(new DefaultMutableTreeNode("Тип файла: " + entry.getValue().fileType));
-                                treeModel.insertNodeInto(reactorNode, rootNode, rootNode.getChildCount());
+                                for (Map.Entry<String, Reactor> entry : reactors.entrySet()) {
+                                    DefaultMutableTreeNode reactorNode = new DefaultMutableTreeNode(entry.getKey());
+                                    reactorNode.add(new DefaultMutableTreeNode("Сгорание: " + entry.getValue().burnup));
+                                    reactorNode.add(new DefaultMutableTreeNode("Класс: " + entry.getValue().reactorClass));
+                                    reactorNode.add(new DefaultMutableTreeNode("Электрическая мощность: " + entry.getValue().electricalCapacity));
+                                    reactorNode.add(new DefaultMutableTreeNode("Первая загрузка: " + entry.getValue().firstLoad));
+                                    reactorNode.add(new DefaultMutableTreeNode("КПД: " + entry.getValue().kpd));
+                                    reactorNode.add(new DefaultMutableTreeNode("Срок службы: " + entry.getValue().lifeTime));
+                                    reactorNode.add(new DefaultMutableTreeNode("Тепловая мощность: " + entry.getValue().terminalCapacity));
+                                    reactorNode.add(new DefaultMutableTreeNode("Тип файла: " + entry.getValue().fileType));
+                                    treeModel.insertNodeInto(reactorNode, rootNode, rootNode.getChildCount());
+                                }
+
+                                JTree tree = new JTree(treeModel);
+                                tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+                                JScrollPane scrollPane = new JScrollPane(tree);
+
+                                JFrame treeFrame = new JFrame("Дерево реакторов");
+                                treeFrame.add(scrollPane);
+                                treeFrame.setSize(400, 300);
+                                treeFrame.setVisible(true);
+                            } else {
+                                JOptionPane.showMessageDialog(GUI.this, "Ошибка при чтении данных из файла", "Ошибка", JOptionPane.ERROR_MESSAGE);
                             }
-
-                            JTree tree = new JTree(treeModel);
-                            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-                            JScrollPane scrollPane = new JScrollPane(tree);
-
-                            JFrame treeFrame = new JFrame("Дерево реакторов");
-                            treeFrame.add(scrollPane);
-                            treeFrame.setSize(400, 300);
-                            treeFrame.setVisible(true);
-                        } else {
-                            JOptionPane.showMessageDialog(GUI.this, "Ошибка при чтении данных из файла", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(GUI.this, "Ошибка при обработке файла: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
                         }
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(GUI.this, "Ошибка при обработке файла: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(GUI.this, "Выбранный файл не существует", "Ошибка", JOptionPane.ERROR_MESSAGE);
                     }
+                } else if (result == JFileChooser.CANCEL_OPTION) {
+                    JOptionPane.showMessageDialog(GUI.this, "Выбор файла отменен", "Информация", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(GUI.this, "Выбранный файл не существует", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(GUI.this, "Ошибка при выборе файла", "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
-            } else if (result == JFileChooser.CANCEL_OPTION) {
-                JOptionPane.showMessageDialog(GUI.this, "Выбор файла отменен", "Информация", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(GUI.this, "Ошибка при выборе файла", "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -114,7 +124,7 @@ public class GUI extends JFrame {
         add(component, gbc);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws URISyntaxException {
         SwingUtilities.invokeLater(() -> {
             try {
                 new GUI();
