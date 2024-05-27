@@ -35,7 +35,7 @@ public class GUI extends JFrame {
         addComponent(openButton, 0);
         addComponent(closeButton, 1);
 
-        closeButton.addActionListener(e -> dispose());
+        closeButton.addActionListener(e -> System.exit(0));
 
         openButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
